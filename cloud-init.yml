@@ -1,0 +1,76 @@
+#cloud-config
+
+apt_update: true
+apt_upgrade: true
+
+packages:
+  - ntp
+  - tmux
+  - htop
+  - vim
+  - fail2ban
+  - curl
+  - build-essential
+  - certbot
+  - git
+  - incron
+  # This includes some dev packages for common deployments
+  - libjpeg-dev
+  - libxml2-dev
+  - libxslt1-dev
+  - zlib1g-dev
+  - nginx
+  - python-certbot-nginx
+  - python-dev
+  - python-pip
+  - python-virtualenv
+  - python3-dev
+  - python3-pip
+  - python3-click
+  - python3-virtualenv
+  - uwsgi
+  - uwsgi-plugin-asyncio-python3
+  - uwsgi-plugin-gevent-python
+  - uwsgi-plugin-python
+  - uwsgi-plugin-python3
+  - uwsgi-plugin-tornado-python
+  - nodejs
+  - npm
+  
+write_files:
+  - path: /etc/nginx/sites-available/default
+    content: |
+      server {
+          listen 80 default_server;
+          listen [::]:80 default_server;
+          root /var/www/html;
+          index index.html index.htm;
+          server_name _;
+          location / {
+              try_files $uri $uri/ =404;
+          }
+      }
+      include /home/piku/.piku/nginx/*.conf;
+
+  - path: /etc/incron.d/paas
+    content: |
+      /home/piku/.piku/nginx IN_MODIFY,IN_NO_LOOP /bin/systemctl reload nginx
+
+  # Have the Azure agent set up a swapfile for us
+  - path: /etc/waagent.conf
+    content: |
+        ResourceDisk.Format=y
+        ResourceDisk.EnableSwap=y
+        ResourceDisk.SwapSizeMB=2048
+
+runcmd:
+  - timedatectl set-timezone Europe/Lisbon
+  # Since Azure will provision the admin user first, we can get its public key like this:
+  - cat /home/*/.ssh/authorized_keys | head -1 > /tmp/id_rsa.pub
+  # Now we can add the Piku user and do the remaining setup
+  - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
+  - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
+  - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
+  - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
+  # This will clean out /tmp as well
+  - reboot
