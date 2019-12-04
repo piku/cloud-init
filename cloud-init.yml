@@ -10,15 +10,18 @@ packages:
   - vim
   - fail2ban
   - curl
-  - build-essential
-  - certbot
-  - git
-  - incron
+  - wget
   # This includes some dev packages for common deployments
+  - build-essential
   - libjpeg-dev
   - libxml2-dev
   - libxslt1-dev
+  - libyaml-cpp-dev
   - zlib1g-dev
+  # Piku stack, plus helpers
+  - git
+  - certbot
+  - incron
   - nginx
   - python-certbot-nginx
   - python-dev
@@ -34,6 +37,7 @@ packages:
   - uwsgi-plugin-python
   - uwsgi-plugin-python3
   - uwsgi-plugin-tornado-python
+  # Runtimes
   - nodejs
   - npm
   
