@@ -1,8 +1,6 @@
 #cloud-config
 
-apt_update: true
-apt_upgrade: true
-
+package_upgrade: true
 packages:
   - ntp
   - tmux
@@ -76,5 +74,8 @@ runcmd:
   - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
+  - sudo apt update
+  - sudo apt dist-upgrade -y
+  - sudo apt autoremove -y
   # This will clean out /tmp as well
   - reboot
