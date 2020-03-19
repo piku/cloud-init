@@ -71,8 +71,8 @@ runcmd:
   - cat /home/*/.ssh/authorized_keys | head -1 > /tmp/id_rsa.pub
   # Now we can add the Piku user and do the remaining setup
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
-  - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
+  - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
   - sudo apt update
   - sudo apt dist-upgrade -y
