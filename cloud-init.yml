@@ -21,23 +21,22 @@ packages:
   - certbot
   - incron
   - nginx
-  - python-certbot-nginx
-  - python-dev
-  - python-pip
-  - python-virtualenv
+  - python3-certbot-nginx
   - python3-dev
   - python3-pip
   - python3-click
   - python3-virtualenv
   - uwsgi
-  - uwsgi-plugin-asyncio-python3
-  - uwsgi-plugin-gevent-python
-  - uwsgi-plugin-python
   - uwsgi-plugin-python3
-  - uwsgi-plugin-tornado-python
-  # Runtimes
-  - nodejs
-  - npm
+  - uwsgi-plugin-asyncio-python3
+  - uwsgi-plugin-gevent-python3
+  - uwsgi-plugin-greenlet-python3
+  - uwsgi-plugin-tornado-python3
+  - uwsgi-plugin-jwsgi-openjdk-11
+  - uwsgi-plugin-php
+  - uwsgi-plugin-lua5.1
+  - uwsgi-plugin-lua5.2
+  - uwsgi-plugin-luajit
   
 write_files:
   - path: /etc/nginx/sites-available/default
@@ -76,8 +75,10 @@ runcmd:
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
   # Install nodesource LTS version
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+  - sudo apt-get install -y nodejs
   - sudo apt update -y
   - sudo apt dist-upgrade -y
   - sudo apt autoremove -y
+  - sudo apt purge snapd -y
   # This will clean out /tmp as well
   - reboot

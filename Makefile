@@ -1,14 +1,14 @@
-export RESOURCE_GROUP?=piku
-export LOCATION?=eastus
-export MACHINE_NAME?=paas
-export DNS_NAME=$(MACHINE_NAME)-$(RESOURCE_GROUP)
-export FQDN=$(DNS_NAME).$(LOCATION).cloudapp.azure.com
-export ADMIN_USERNAME?=$(USER)
 export SHELL=/bin/bash
-export TIMESTAMP=$(shell date "+%Y-%m-%d-%H-%M-%S")
-export STORAGE_SUFFIX=$(shell date "+%d%H%M")
-export STORAGE_ACCOUNT_NAME=$(MACHINE_NAME)diag$(STORAGE_SUFFIX)
-export VM_SIZE=Standard_B2ms
+export RESOURCE_GROUP?=piku
+export LOCATION?=eastus2
+export MACHINE_NAME?=paas
+export DNS_NAME:=$(MACHINE_NAME)-$(RESOURCE_GROUP)
+export FQDN:=$(DNS_NAME).$(LOCATION).cloudapp.azure.com
+export ADMIN_USERNAME?=$(notdir $(HOME))
+export TIMESTAMP:=$(shell date "+%Y-%m-%d-%H-%M-%S")
+export STORAGE_SUFFIX:=$(shell date "+%m%d%H")
+export STORAGE_ACCOUNT_NAME:=$(MACHINE_NAME)diag$(STORAGE_SUFFIX)
+export VM_SIZE:=Standard_B2ms
 
 
 # Permanent local overrides
@@ -26,7 +26,7 @@ sizes:
 	az vm list-sizes --location=$(LOCATION) --output table
 
 images:
-	az vm list-images --output table
+	az vm image list-skus --output table
 
 # Create a resource group and deploy the cluster resources inside it
 
@@ -85,12 +85,12 @@ deploy-compute:
 		--os-disk-name $(MACHINE_NAME) \
 		--os-disk-size-gb 32 \
 		--size $(VM_SIZE) \
-		--admin-username $(USER) \
+		--admin-username $(ADMIN_USERNAME) \
 		--ssh-key-value @$(HOME)/.ssh/id_rsa.pub \
 		--public-ip-address-dns-name $(DNS_NAME) \
 		--boot-diagnostics-storage $(STORAGE_ACCOUNT_NAME) \
-        --custom-data @cloud-init.yml \
-		--image UbuntuLTS \
+		--custom-data @cloud-init.yml \
+		--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
 		--resource-group $(RESOURCE_GROUP) \
 		--nsg $(MACHINE_NAME) \
 		--output table \
@@ -121,7 +121,7 @@ view-deployment:
 		--query "[].{OperationID:operationId,Name:properties.targetResource.resourceName,Type:properties.targetResource.resourceType,State:properties.provisioningState,Status:properties.statusCode}" \
 		--output table
 
-# Do not output warnings, do not validate or add remote host keys (useful when doing successive deployments or going through the load balancer)
+# Do not output warnings, do not validate or add remote host keys (useful when doing successive deployments or going through a load balancer)
 ssh:
 	ssh -q -A $(ADMIN_USERNAME)@$(FQDN) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 
@@ -131,3 +131,6 @@ list-endpoints:
 		--resource-group $(RESOURCE_GROUP) \
 		--query '[].{dnsSettings:dnsSettings.fqdn}' \
 		--output table
+
+set:
+	set
