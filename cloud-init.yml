@@ -56,6 +56,13 @@ write_files:
   - path: /etc/incron.d/paas
     content: |
       /home/piku/.piku/nginx IN_MODIFY,IN_NO_LOOP /bin/systemctl reload nginx
+  
+  # If you change the SSH port, don't forget to edit this accordingly
+  #- path: /etc/fail2ban/jail.d/defaults-debian.conf
+  #  content: |
+  #    [sshd]
+  #    enabled = true
+  #    port = 22
 
   # Have the Azure agent set up a swapfile for us
   - path: /etc/waagent.conf
