@@ -9,6 +9,7 @@ packages:
   - fail2ban
   - curl
   - wget
+  - sudo
   # This includes some dev packages for common deployments
   - build-essential
   - libjpeg-dev
@@ -72,20 +73,25 @@ write_files:
         ResourceDisk.SwapSizeMB=2048
 
 runcmd:
+  # Adjust to taste
   - timedatectl set-timezone Europe/Lisbon
   # Since Azure will provision the admin user first, we can get its public key like this:
   - cat /home/*/.ssh/authorized_keys | head -1 > /tmp/id_rsa.pub
-  # Now we can add the Piku user and do the remaining setup
+  # Now we can add the Piku user and do the remaining setsudo sysctl -w fs.inotify.max_user_watches=12288up
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
   - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
+  # Remove snaps (primarily useful in smaller VMs)
+  - sudo apt purge snapd -y
   # Install nodesource LTS version
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
   - sudo apt-get install -y nodejs
+  # Basic hygiene in case there are any outstanding dependency changes
   - sudo apt update -y
   - sudo apt dist-upgrade -y
   - sudo apt autoremove -y
-  - sudo apt purge snapd -y
+  # Ensure we have inotify working
+  - sudo sysctl -w fs.inotify.max_user_watches=524288
   # This will clean out /tmp as well
   - reboot
