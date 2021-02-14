@@ -82,8 +82,8 @@ runcmd:
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
   - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
-  # Remove snaps (primarily useful in smaller VMs)
-  - sudo apt-get purge snapd -y
+  # Remove snaps (primarily useful in smaller VMs, but DO NOT DO THIS IN ORACLE CLOUD since that uses snap to install its monitoring agent)
+  #- sudo apt-get purge snapd -y
   # Install nodesource LTS version
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
   - sudo apt-get install -y nodejs
