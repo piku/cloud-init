@@ -83,7 +83,7 @@ runcmd:
   - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
   # Remove snaps (primarily useful in smaller VMs)
-  - sudo apt purge snapd -y
+  - sudo apt-get purge snapd -y
   # Install nodesource LTS version
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
   - sudo apt-get install -y nodejs
