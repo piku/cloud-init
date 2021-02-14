@@ -88,9 +88,9 @@ runcmd:
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
   - sudo apt-get install -y nodejs
   # Basic hygiene in case there are any outstanding dependency changes
-  - sudo apt update -y
-  - sudo apt dist-upgrade -y
-  - sudo apt autoremove -y
+  - sudo apt-get update -y
+  - sudo apt-get dist-upgrade -y
+  - sudo apt-get autoremove -y
   # Ensure we have inotify working
   - sudo sysctl -w fs.inotify.max_user_watches=524288
   # This will clean out /tmp as well
