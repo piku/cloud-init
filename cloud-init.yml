@@ -92,6 +92,6 @@ runcmd:
   - sudo apt-get dist-upgrade -y
   - sudo apt-get autoremove -y
   # Ensure we have inotify working
-  - sudo sysctl -w fs.inotify.max_user_watches=524288
+  - sudo sysctl -w fs.inotify.max_user_watches=1048576
   # This will clean out /tmp as well
   - reboot
