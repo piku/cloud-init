@@ -27,6 +27,7 @@ packages:
   - python3-pip
   - python3-click
   - python3-virtualenv
+  - python-is-python3
   - uwsgi
   - uwsgi-plugin-python3
   - uwsgi-plugin-asyncio-python3
