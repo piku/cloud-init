@@ -17,6 +17,7 @@ packages:
   - libxslt1-dev
   - libyaml-cpp-dev
   - zlib1g-dev
+  - sqlite3
   # Piku stack, plus helpers
   - git
   - certbot
