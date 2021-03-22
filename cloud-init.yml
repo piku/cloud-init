@@ -1,6 +1,7 @@
 #cloud-config
 
 package_upgrade: true
+# This assumes Ubuntu 20.04 - most Debian 10+ packages are identical, but not all.
 packages:
   - ntp
   - tmux
@@ -74,26 +75,36 @@ write_files:
         ResourceDisk.EnableSwap=y
         ResourceDisk.SwapSizeMB=2048
 
+  # Ensure we have inotify working (some of my apps require it)
+  - path: /etc/sysctl.conf
+    append: true
+    content: |
+        fs.inotify.max_user_watches=1048576
+
 runcmd:
   # Adjust to taste
   - timedatectl set-timezone Europe/Lisbon
-  # Since Azure will provision the admin user first, we can get its public key like this:
+  # Since Azure will provision the admin user first, we can get its public key like this (TODO: refactor for Oracle Cloud and AWS):
   - cat /home/*/.ssh/authorized_keys | head -1 > /tmp/id_rsa.pub
-  # Now we can add the Piku user and do the remaining setsudo sysctl -w fs.inotify.max_user_watches=12288up
+  # Now we can add the Piku user and do the remaining setup
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
   - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
   - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
-  # Remove snaps (primarily useful in smaller VMs, but DO NOT DO THIS IN ORACLE CLOUD since that uses snap to install its monitoring agent)
-  #- sudo apt-get purge snapd -y
+  # Remove snaps (primarily useful in smaller VMs, but DO NOT DO THIS IN ORACLE CLOUD since they use snap to install the monitoring agent)
+  - sudo apt-get purge snapd -y
+  # Set up swap on Oracle Cloud
+  #- fallocate -l 2G /swapfile
+  #- chmod 600 /swapfile
+  #- mkswap /swapfile
+  #- swapon /swapfile
+  #- echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
   # Install nodesource LTS version
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-  - sudo apt-get install -y nodejs
+  - apt-get install -y nodejs
   # Basic hygiene in case there are any outstanding dependency changes
-  - sudo apt-get update -y
-  - sudo apt-get dist-upgrade -y
-  - sudo apt-get autoremove -y
-  # Ensure we have inotify working
-  - sudo sysctl -w fs.inotify.max_user_watches=1048576
+  - apt-get update -y
+  - apt-get dist-upgrade -y
+  - apt-get autoremove -y
   # This will clean out /tmp as well
   - reboot
