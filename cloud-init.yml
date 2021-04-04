@@ -13,12 +13,17 @@ packages:
   - sudo
   # This includes some dev packages for common deployments
   - build-essential
-  - libjpeg-dev
   - libxml2-dev
   - libxslt1-dev
   - libyaml-cpp-dev
   - zlib1g-dev
   - sqlite3
+  # Image processing libraries
+  - libcairo2-dev
+  - libpango1.0-dev
+  - libjpeg-dev
+  - libgif-dev 
+  - librsvg2-dev
   # Piku stack, plus helpers
   - git
   - certbot
