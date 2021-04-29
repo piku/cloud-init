@@ -24,6 +24,10 @@ packages:
   - libjpeg-dev
   - libgif-dev 
   - librsvg2-dev
+  # Other libraries
+  - libffi-dev 
+  - libsasl2-dev
+  - libldap2-dev
   # Piku stack, plus helpers
   - git
   - certbot
