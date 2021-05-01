@@ -11,6 +11,8 @@ packages:
   - curl
   - wget
   - sudo
+  # Backups
+  - restic
   # This includes some dev packages for common deployments
   - build-essential
   - libxml2-dev
