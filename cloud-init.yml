@@ -11,6 +11,7 @@ packages:
   - curl
   - wget
   - sudo
+  - net-tools
   # Backups
   - restic
   # This includes some dev packages for common deployments
@@ -52,6 +53,9 @@ packages:
   - uwsgi-plugin-lua5.1
   - uwsgi-plugin-lua5.2
   - uwsgi-plugin-luajit
+  # Optional services (Ubuntu default packages bind these to localhost, be wary of exposed ports if using other distros)
+  # - redis
+  # - mongodb-server
   
 write_files:
   - path: /etc/nginx/sites-available/default
