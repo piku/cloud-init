@@ -1,6 +1,6 @@
 # deploy-on-azure
 
-This repository holds the bare essentials to deploy [`piku`][piku] using [`cloud-init`][ci] on [Azure][az], and is provided as a base example for adaptation to _any_ cloud provider or localy hypervisor that supports `cloud-init` (like AWS, GCP, DigitalOcean, Scaleway, Oracle Cloud, etc. - it's been tested on all major providers and on KVM, LXD, and VMware as well).
+This repository holds the bare essentials to deploy [`piku`][piku] using [`cloud-init`][ci] on [Azure][az], and is provided as a base example for adaptation to _any_ cloud provider or local hypervisor that supports `cloud-init` (like AWS, GCP, DigitalOcean, Scaleway, Oracle Cloud, etc. - it's been tested on all major providers and on KVM, LXD, and VMware as well).
 
 If you are not using [Azure][az], the process is still quite similar. This repository will eventually grow to include pre-built files for other cloud providers.
 
