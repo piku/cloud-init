@@ -66,6 +66,7 @@ packages:
   - uwsgi-plugin-lua5.2
   - uwsgi-plugin-luajit
   # Optional services (Ubuntu default packages bind these to localhost, be wary of exposed ports if using other distros)
+  # - mosquitto
   # - redis
   # - mongodb-server
   
@@ -117,9 +118,9 @@ runcmd:
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
   - apt-get install -y nodejs
   # Some IoT settings I need
-  - usermod -a -G uucp piku
-  - usermod -a -G tty piku
-  - usermod -a -G dialout piku
+  # - usermod -a -G uucp piku
+  # - usermod -a -G tty piku
+  # - usermod -a -G dialout piku
   # Basic hygiene in case there are any outstanding dependency changes
   - apt-get update -y
   - apt-get dist-upgrade -y
