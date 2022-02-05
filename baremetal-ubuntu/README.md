@@ -1,6 +1,6 @@
 # Install Piku on Ubuntu 20.04 using `cloud-init`
 
-> ℹ️ **Note:** 
+> ℹ️ **Note** 
 > 
 > This assumes you're using [the official Raspberry Pi Ubuntu images](https://ubuntu.com/download/raspberry-pi) for Ubuntu 20.04 (current LTS). It _is not guaranteed to work_ on other versions
 
