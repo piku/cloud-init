@@ -1,6 +1,6 @@
 # cloud-init
 
-This repository holds the bare essentials to deploy [`piku`][piku] using [`cloud-init`][ci] on  _any_ cloud provider or local hypervisor that supports it, using Ubuntu LTS.
+This repository holds the bare essentials to deploy [`piku`][piku] on Ubuntu LTS through [`cloud-init`][ci] on  _any_ cloud provider or local hypervisor that supports it.
 
 > ⚠️ **Warning**
 >
