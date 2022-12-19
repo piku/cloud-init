@@ -6,6 +6,15 @@ This repository holds the bare essentials to deploy [`piku`][piku] on Ubuntu LTS
 >
 > These are not meant to be used as guides for manual installation. The files are provided as starting points only, and may require tweaking depending on your environment. Variations of this have been used in [Azure][az], AWS, GCP, DigitalOcean, Scaleway, Oracle Cloud and other public cloud providers, as well as KVM, LXD, and VMware as well, but be prepared to iterate a bit.
 
+## Quick Hacks
+
+If you want to use these files to provision an already running instance, this should work:
+
+```bash
+sudo cloud-init clean --logs
+sudo cloud-init --file cloud-init.yml modules --mode=final 
+```
+
 ## Contributing
 
 You are encouraged to clone this repository, adapt it for your own infrastructure provider and file a pull request with versions that work for your own environment.
