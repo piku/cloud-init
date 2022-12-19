@@ -14,6 +14,7 @@ If you want to use these files to provision an already running machine, this sho
 sudo cloud-init clean --logs
 sudo cloud-init --file cloud-init.yml single --name cc_package_update_upgrade_install --frequency once 
 sudo cloud-init --file cloud-init.yml single --name cc_write_files --frequency once 
+sudo cloud-init --file cloud-init.yml single --name cc_runcmd --frequency once 
 sudo sh /var/lib/cloud/instances/iid-datasource-none/scripts/runcmd
 ```
 
