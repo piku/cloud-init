@@ -8,7 +8,7 @@ This repository holds the bare essentials to deploy [`piku`][piku] on Ubuntu LTS
 
 ## Quick Hacks
 
-If you want to use these files to provision an already running instance, this should work:
+If you want to use these files to provision an already running machine, this should work:
 
 ```bash
 sudo cloud-init clean --logs
