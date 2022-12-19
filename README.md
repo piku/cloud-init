@@ -12,6 +12,8 @@ If you want to use these files to provision an already running machine, this sho
 
 ```bash
 sudo cloud-init clean --logs
+sudo cloud-init --file cloud-init.yml single --name cc_package_update_upgrade_install --frequency always 
+sudo cloud-init --file cloud-init.yml single --name cc_write_files --frequency always 
 sudo cloud-init --file cloud-init.yml modules --mode=final 
 ```
 
