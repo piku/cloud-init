@@ -2,7 +2,7 @@
 
 This repository holds the bare essentials to deploy [`piku`][piku] on Ubuntu LTS through [`cloud-init`][ci] on  _any_ cloud provider or local hypervisor that supports it.
 
-> ⚠️ **Warning**
+> **Warning**
 >
 > These are not meant to be used as guides for manual installation. The files are provided as starting points only, and may require tweaking depending on your environment. Variations of this have been used in [Azure][az], AWS, GCP, DigitalOcean, Scaleway, Oracle Cloud and other public cloud providers, as well as KVM, LXD, and VMware as well, but be prepared to iterate a bit.
 
