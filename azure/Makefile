@@ -4,46 +4,50 @@ export LOCATION?=eastus2
 export MACHINE_NAME?=paas
 export DNS_NAME:=$(MACHINE_NAME)-$(RESOURCE_GROUP)
 export FQDN:=$(DNS_NAME).$(LOCATION).cloudapp.azure.com
+export SSH_PORT:=22
 export ADMIN_USERNAME?=$(notdir $(HOME))
 export TIMESTAMP:=$(shell date "+%Y-%m-%d-%H-%M-%S")
 export STORAGE_SUFFIX:=$(shell date "+%m%d%H")
 export STORAGE_ACCOUNT_NAME:=$(MACHINE_NAME)diag$(STORAGE_SUFFIX)
 export VM_SIZE:=Standard_B2ms
+export OS_DISK_SIZE:=32
+export OS_DISK_SKU:=StandardSSD_LRS
+export VM_IMAGE:=Canonical:0001-com-ubuntu-minimal-jammy:minimal-22_04-lts-gen2:latest
 
 
 # Permanent local overrides
 -include .env
+.DEFAULT_GOAL := help
 
-# dump resource groups
-resources:
+list-resources: ## Dump resource groups
 	az group list --output table
 
-# Dump list of location IDs
-locations:
+list-locations: ## Dump list of location IDs
 	az account list-locations --output table
 
-sizes:
+list-sizes: ## Dump list of VM sizes in the selected location
 	az vm list-sizes --location=$(LOCATION) --output table
 
-images:
-	az vm image list-skus --output table
+list-image-offers: ## Dump list of OS image offers
+	az vm image list-offers --location=$(LOCATION) --publisher Canonical --output table
 
-# Create a resource group and deploy the cluster resources inside it
+list-image-skus: ## Dump list of OS image SKUs
+	az vm image list-skus --location=$(LOCATION) --publisher Canonical --offer 0001-com-ubuntu-server-jammy --output table --output table 
 
-preflight:
+preflight: ## Create the empty resource group
 	az group create \
 		--name $(RESOURCE_GROUP) \
 		--location $(LOCATION) \
 		--output table 
 
-deploy-storage:
+deploy-storage: ## Deploy a storage account for diagnostics and restic backups
 	az storage account create \
 		--name $(STORAGE_ACCOUNT_NAME) \
 		--resource-group $(RESOURCE_GROUP) \
 		--kind StorageV2 \
 		--sku Standard_LRS
 
-deploy-network:
+deploy-network: ## Deploy the network and open network security group ports
 	az network nsg create \
 		--name $(MACHINE_NAME) \
 		--resource-group $(RESOURCE_GROUP) \
@@ -54,7 +58,7 @@ deploy-network:
 		--access Allow \
 		--direction Inbound \
 		--protocol TCP \
-		--destination-port-ranges 22 \
+		--destination-port-ranges $(SSH_PORT) \
 		--nsg-name $(MACHINE_NAME) \
 		--resource-group $(RESOURCE_GROUP) \
 	    --output table
@@ -79,58 +83,59 @@ deploy-network:
 		--resource-group $(RESOURCE_GROUP) \
 		--output table
 
-deploy-compute:
+deploy-compute: ## Deploy the VM only
 	az vm create \
 		--name $(MACHINE_NAME) \
 		--os-disk-name $(MACHINE_NAME) \
-		--os-disk-size-gb 32 \
+		--os-disk-size-gb $(OS_DISK_SIZE) \
+		--storage-sku $(OS_DISK_SKU) \
 		--size $(VM_SIZE) \
 		--admin-username $(ADMIN_USERNAME) \
 		--ssh-key-value @$(HOME)/.ssh/id_rsa.pub \
 		--public-ip-address-dns-name $(DNS_NAME) \
 		--boot-diagnostics-storage $(STORAGE_ACCOUNT_NAME) \
 		--custom-data @cloud-init.yml \
-		--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
+		--image $(VM_IMAGE) \
 		--resource-group $(RESOURCE_GROUP) \
 		--nsg $(MACHINE_NAME) \
 		--output table \
 		--no-wait
 
-# Destroy the entire resource group and all cluster resources
-destroy-all:
+destroy-all: ## Destroy the entire resource group
 	az group delete \
 		--name $(RESOURCE_GROUP) \
 		--no-wait \
 		--yes
 
-deploy:
+deploy: ## *START HERE* Deploy all the resources
 	make preflight
 	make deploy-storage
 	make deploy-network
 	make deploy-compute
 
-redeploy:
+redeploy: ## Destroy and redeploy [WARNING: this is for testing only!]
 	-make destroy-all
 	while [[ $$(az group list | grep Deleting) =~ "Deleting" ]]; do sleep 30; done
 	make deploy
 
-# View deployment details
-view-deployment:
+view-deployment: ## View deployment details
 	az group deployment operation list \
 		--resource-group $(RESOURCE_GROUP) \
 		--query "[].{OperationID:operationId,Name:properties.targetResource.resourceName,Type:properties.targetResource.resourceType,State:properties.provisioningState,Status:properties.statusCode}" \
 		--output table
 
 # Do not output warnings, do not validate or add remote host keys (useful when doing successive deployments or going through a load balancer)
-ssh:
-	ssh -q -A $(ADMIN_USERNAME)@$(FQDN) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+ssh: ## SSH into the VM (disabling strict host checking, for quick testing)
+	ssh -q -A $(ADMIN_USERNAME)@$(FQDN) -p $(SSH_PORT) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 
-# List endpoints
-list-endpoints:
+list-endpoints: ## List open endpoints
 	az network public-ip list \
 		--resource-group $(RESOURCE_GROUP) \
 		--query '[].{dnsSettings:dnsSettings.fqdn}' \
 		--output table
 
-set:
+help: ## This help
+	@grep -hE '^[A-Za-z0-9_ \-]*?:.*##.*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+set: ## Dump current environment variables
 	set

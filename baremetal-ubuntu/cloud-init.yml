@@ -61,7 +61,8 @@ packages:
   - uwsgi-plugin-gevent-python3
   - uwsgi-plugin-greenlet-python3
   - uwsgi-plugin-tornado-python3
-  - uwsgi-plugin-jwsgi-openjdk-11
+  # disabled by default to save space
+  #- uwsgi-plugin-jwsgi-openjdk-11
   - uwsgi-plugin-php
   - uwsgi-plugin-lua5.1
   - uwsgi-plugin-lua5.2
@@ -70,9 +71,10 @@ packages:
   # - mosquitto
   # - redis
   # - mongodb-server
+  # - postgresql
   
 write_files:
-  - path: /etc/nginx/sites-available/default
+- path: /etc/nginx/sites-available/default
     content: |
       server {
           listen 80 default_server;
@@ -86,9 +88,43 @@ write_files:
       }
       include /home/piku/.piku/nginx/*.conf;
 
-  - path: /etc/incron.d/paas
+  - path: /etc/uwsgi/apps-enabled/piku.ini
     content: |
-      /home/piku/.piku/nginx IN_MODIFY,IN_NO_LOOP /bin/systemctl reload nginx
+      [uwsgi]
+      chdir = /home/piku/.piku/uwsgi
+      emperor = /home/piku/.piku/uwsgi-enabled
+      log-maxsize = 1048576
+      logto = /home/piku/.piku/uwsgi/uwsgi.log
+      log-backupname = /home/piku/.piku/uwsgi/uwsgi.old.log
+      socket = /home/piku/.piku/uwsgi/uwsgi.sock
+      uid = piku
+      gid = www-data
+      enable-threads = true
+      threads = 2
+
+  - path: /etc/systemd/system/piku-nginx.path
+    content: |
+      [Unit]
+      Description=Monitor .piku/nginx for changes
+
+      [Path]
+      PathChanged=/home/piku/.piku/nginx
+      Unit=piku-nginx.service
+
+      [Install]
+      WantedBy=multi-user.target
+  
+  - path: /etc/systemd/system/piku-nginx.service
+    content: |
+      [Unit]
+      Description=Restarts nginx when .piku/nginx changes.
+
+      [Service]
+      Type=simple
+      ExecStart=/bin/systemctl reload nginx
+
+      [Install]
+      WantedBy=multi-user.target
   
   # If you change the SSH port, don't forget to edit this accordingly
   #- path: /etc/fail2ban/jail.d/defaults-debian.conf

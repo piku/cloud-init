@@ -21,7 +21,7 @@
 ## Caveats
 
 * This would best be done as an Azure Resource Manager template, but using the CLI alone allows for easier experimentation and provides a more readable example
-* This will deploy everything on Ubuntu LTS 20.04 (which is one of the core distributions we test [`piku`][piku] against).
+* This will deploy everything on Ubuntu LTS 22.04 (which is one of the core distributions we test [`piku`][piku] against).
 
 [az]: http://azure.microsoft.com/
 [azcli]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli

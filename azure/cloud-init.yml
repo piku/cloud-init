@@ -1,7 +1,7 @@
 #cloud-config
 
 package_upgrade: true
-# This assumes Ubuntu 20.04 - most Debian 10+ packages are identical, but not all.
+# This assumes Ubuntu 22.04 - most Debian 11 packages are identical, but not all.
 packages:
   - ntp
   - tmux
@@ -31,33 +31,34 @@ packages:
   - libffi-dev 
   - libsasl2-dev
   - libldap2-dev
-  # Clojure (will bring in OpenJDK 11)
-  - leiningen
   # Piku stack, plus helpers
   - git
   - certbot
-  - incron
   - nginx
   - python3-certbot-nginx
   - python3-dev
   - python3-pip
   - python3-click
   - python3-virtualenv
-  - python-is-python3
   - uwsgi
   - uwsgi-plugin-python3
   - uwsgi-plugin-asyncio-python3
   - uwsgi-plugin-gevent-python3
   - uwsgi-plugin-greenlet-python3
   - uwsgi-plugin-tornado-python3
-  - uwsgi-plugin-jwsgi-openjdk-11
+  # Clojure (will bring in OpenJDK 11)
+  # disabled by default to save space
+  #- leiningen
+  #- uwsgi-plugin-jwsgi-openjdk-11
   - uwsgi-plugin-php
   - uwsgi-plugin-lua5.1
   - uwsgi-plugin-lua5.2
   - uwsgi-plugin-luajit
   # Optional services (Ubuntu default packages bind these to localhost, be wary of exposed ports if using other distros)
+  # - mosquitto
   # - redis
   # - mongodb-server
+  # - postgresql
   
 write_files:
   - path: /etc/nginx/sites-available/default
@@ -74,9 +75,43 @@ write_files:
       }
       include /home/piku/.piku/nginx/*.conf;
 
-  - path: /etc/incron.d/paas
+  - path: /etc/uwsgi/apps-enabled/piku.ini
     content: |
-      /home/piku/.piku/nginx IN_MODIFY,IN_NO_LOOP /bin/systemctl reload nginx
+      [uwsgi]
+      chdir = /home/piku/.piku/uwsgi
+      emperor = /home/piku/.piku/uwsgi-enabled
+      log-maxsize = 1048576
+      logto = /home/piku/.piku/uwsgi/uwsgi.log
+      log-backupname = /home/piku/.piku/uwsgi/uwsgi.old.log
+      socket = /home/piku/.piku/uwsgi/uwsgi.sock
+      uid = piku
+      gid = www-data
+      enable-threads = true
+      threads = 2
+
+  - path: /etc/systemd/system/piku-nginx.path
+    content: |
+      [Unit]
+      Description=Monitor .piku/nginx for changes
+
+      [Path]
+      PathChanged=/home/piku/.piku/nginx
+      Unit=piku-nginx.service
+
+      [Install]
+      WantedBy=multi-user.target
+  
+  - path: /etc/systemd/system/piku-nginx.service
+    content: |
+      [Unit]
+      Description=Restarts nginx when .piku/nginx changes.
+
+      [Service]
+      Type=simple
+      ExecStart=/bin/systemctl reload nginx
+
+      [Install]
+      WantedBy=multi-user.target
   
   # If you change the SSH port, don't forget to edit this accordingly
   #- path: /etc/fail2ban/jail.d/defaults-debian.conf
@@ -85,18 +120,18 @@ write_files:
   #    enabled = true
   #    port = 22
 
+  # Ensure we have inotify working (some of my apps require it)
+  - path: /etc/sysctl.conf
+    append: true
+    content: |
+        fs.inotify.max_user_watches=1048576
+
   # Have the Azure agent set up a swapfile for us
   - path: /etc/waagent.conf
     content: |
         ResourceDisk.Format=y
         ResourceDisk.EnableSwap=y
         ResourceDisk.SwapSizeMB=2048
-
-  # Ensure we have inotify working (some of my apps require it)
-  - path: /etc/sysctl.conf
-    append: true
-    content: |
-        fs.inotify.max_user_watches=1048576
 
 runcmd:
   # Adjust to taste
@@ -106,16 +141,9 @@ runcmd:
   # Now we can add the Piku user and do the remaining setup
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
-  - ln /home/piku/.piku/uwsgi/uwsgi.ini /etc/uwsgi/apps-enabled/piku.ini
-  - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
-  # Remove snaps (primarily useful in smaller VMs, but DO NOT DO THIS IN ORACLE CLOUD since they use snap to install the monitoring agent)
+  - su - piku -c "python ~/piku.py setup:ssh /tmp/id_rsa.pub"
+  # Remove snaps (primarily useful in smaller VMs)
   - sudo apt-get purge snapd -y
-  # Set up swap on Oracle Cloud
-  #- fallocate -l 2G /swapfile
-  #- chmod 600 /swapfile
-  #- mkswap /swapfile
-  #- swapon /swapfile
-  #- echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
   # Install nodesource LTS version
   - curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
   - apt-get install -y nodejs
