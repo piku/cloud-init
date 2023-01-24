@@ -90,19 +90,19 @@ write_files:
       enable-threads = true
       threads = 2
 
-  - path: /etc/systemd/system/piku-nginx.path
+  - path: /etc/systemd/system/piku-nginx-watcher.path
     content: |
       [Unit]
       Description=Monitor .piku/nginx for changes
 
       [Path]
       PathChanged=/home/piku/.piku/nginx
-      Unit=piku-nginx.service
+      Unit=piku-nginx-watcher.service
 
       [Install]
       WantedBy=multi-user.target
   
-  - path: /etc/systemd/system/piku-nginx.service
+  - path: /etc/systemd/system/piku-nginx-watcher.service
     content: |
       [Unit]
       Description=Restarts nginx when .piku/nginx changes.
@@ -188,7 +188,7 @@ runcmd:
   - apt-get dist-upgrade -y
   - apt-get autoremove -y
   # enable our extra services
-  - systemctl enable piku.nginx
+  - systemctl enable piku-nginx-watcher
   - systemctl enable cgconfigparser
   - cp /usr/share/doc/cgroup-tools/examples/cgred.conf /etc/cgred.conf
   - systemctl enable cgrulesgend
