@@ -232,7 +232,7 @@ runcmd:
   # Now we can add the Piku user and do the remaining setup
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
-  - su - piku -c "python ~/piku.py setup:ssh /tmp/id_rsa.pub"
+  - su - piku -c "python3 ~/piku.py setup:ssh /tmp/id_rsa.pub"
   # Set up cgroup files
   - su - piku -c "mkdir -p ~/.piku/cgconfig.d"
   - su - piku -c "touch ~/.piku/cgred.conf"
