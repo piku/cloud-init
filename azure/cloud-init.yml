@@ -47,6 +47,7 @@ packages:
   - uwsgi-plugin-greenlet-python3
   - uwsgi-plugin-python3
   - uwsgi-plugin-tornado-python3
+  - uwsgi-plugin-rack-ruby3.0
   # Clojure (will bring in OpenJDK 11)
   # disabled by default to save space
   #- leiningen
@@ -54,7 +55,6 @@ packages:
   - uwsgi-plugin-lua5.1
   - uwsgi-plugin-lua5.2
   - uwsgi-plugin-luajit
-  - uwsgi-plugin-php
   # Optional services (Ubuntu default packages bind these to localhost, be wary of exposed ports if using other distributions)
   # - mongodb-server
   # - mosquitto
@@ -114,12 +114,18 @@ write_files:
       [Install]
       WantedBy=multi-user.target
   
+  - path: /etc/sshd_config
+    append: true
+    content: |
+      Port $SSH_PORT
+      Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+
   # If you change the SSH port, don't forget to edit this accordingly
-  #- path: /etc/fail2ban/jail.d/defaults-debian.conf
-  #  content: |
-  #    [sshd]
-  #    enabled = true
-  #    port = 22
+  - path: /etc/fail2ban/jail.d/defaults-debian.conf
+    content: |
+      [sshd]
+      enabled = true
+      port = $SSH_PORT
 
   # Ensure we have inotify working (some of my apps require it)
   - path: /etc/sysctl.conf

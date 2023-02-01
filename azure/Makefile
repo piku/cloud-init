@@ -4,7 +4,7 @@ export LOCATION?=eastus2
 export MACHINE_NAME?=paas
 export DNS_NAME:=$(MACHINE_NAME)-$(RESOURCE_GROUP)
 export FQDN:=$(DNS_NAME).$(LOCATION).cloudapp.azure.com
-export SSH_PORT:=22
+export SSH_PORT:=1337
 export ADMIN_USERNAME?=$(notdir $(HOME))
 export TIMESTAMP:=$(shell date "+%Y-%m-%d-%H-%M-%S")
 export STORAGE_SUFFIX:=$(shell date "+%m%d%H")
@@ -13,7 +13,7 @@ export VM_SIZE:=Standard_B2ms
 export OS_DISK_SIZE:=32
 export OS_DISK_SKU:=StandardSSD_LRS
 export VM_IMAGE:=Canonical:0001-com-ubuntu-minimal-jammy:minimal-22_04-lts-gen2:latest
-
+export SSH:=ssh -q -A $(ADMIN_USERNAME)@$(FQDN) -p $(SSH_PORT) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 
 # Permanent local overrides
 -include .env
@@ -84,6 +84,7 @@ deploy-network: ## Deploy the network and open network security group ports
 		--output table
 
 deploy-compute: ## Deploy the VM only
+	envsubst < cloud-init.yml > custom-data
 	az vm create \
 		--name $(MACHINE_NAME) \
 		--os-disk-name $(MACHINE_NAME) \
@@ -94,12 +95,13 @@ deploy-compute: ## Deploy the VM only
 		--ssh-key-value @$(HOME)/.ssh/id_rsa.pub \
 		--public-ip-address-dns-name $(DNS_NAME) \
 		--boot-diagnostics-storage $(STORAGE_ACCOUNT_NAME) \
-		--custom-data @cloud-init.yml \
+		--custom-data @custom-data \
 		--image $(VM_IMAGE) \
 		--resource-group $(RESOURCE_GROUP) \
 		--nsg $(MACHINE_NAME) \
 		--output table \
 		--no-wait
+	rm custom-data
 
 destroy-all: ## Destroy the entire resource group
 	az group delete \
@@ -126,7 +128,12 @@ view-deployment: ## View deployment details
 
 # Do not output warnings, do not validate or add remote host keys (useful when doing successive deployments or going through a load balancer)
 ssh: ## SSH into the VM (disabling strict host checking, for quick testing)
-	ssh -q -A $(ADMIN_USERNAME)@$(FQDN) -p $(SSH_PORT) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+	$(SSH)
+
+check-services: ## SSH into the VM and check services
+	$(SSH) sudo systemctl status cgconfigparser
+	$(SSH) sudo systemctl status cgrulesgend
+	$(SSH) sudo systemctl status piku-nginx-watcher
 
 list-endpoints: ## List open endpoints
 	az network public-ip list \
