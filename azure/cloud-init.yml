@@ -109,7 +109,7 @@ write_files:
 
       [Service]
       Type=simple
-      ExecStart=/bin/systemctl reload nginx
+      ExecStart=/usr/bin/systemctl reload nginx
 
       [Install]
       WantedBy=multi-user.target
@@ -133,7 +133,7 @@ write_files:
     content: |
         fs.inotify.max_user_watches=1048576
 
-  # Set up cgroup management so we can limit process RAM and CPU usage
+  # Set up cgroup filesystem so we can limit process RAM and CPU usage
   - path: /lib/systemd/system/cgconfigparser.service
     append: true
     content: |
@@ -144,16 +144,37 @@ write_files:
         [Service]
         User=root
         Group=root
-        ExecStart=/usr/sbin/cgconfigparser -l /etc/cgconfig.conf
+        ExecStart=/usr/sbin/cgconfigparser -L /home/piku/.piku/cgconfig.d
         Type=oneshot
 
         [Install]
         WantedBy=multi-user.target
 
-  - path: /etc/cgconfig.conf
+  - path: /etc/systemd/system/piku-cgconfigparser-watcher.path
     content: |
-      # this line intentionally commented out
+      [Unit]
+      Description=Monitor .piku/cgconfig.d for changes
 
+      [Path]
+      PathChanged=/home/piku/.piku/cgconfig.d
+      Unit=piku-cgconfigparser-watcher.service
+
+      [Install]
+      WantedBy=multi-user.target
+  
+  - path: /etc/systemd/system/piku-cgconfigparser-watcher.service
+    content: |
+      [Unit]
+      Description=Restarts cgrulesengd when .piku/cgconfig.d changes.
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/systemctl restart cgconfigparser
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # Set up cgroup allocation rules
   - path: /lib/systemd/system/cgrulesgend.service
     append: true
     content: |
@@ -165,16 +186,36 @@ write_files:
         User=root
         Group=root
         Type=forking
-        EnvironmentFile=-/etc/cgred.conf
+        EnvironmentFile=-/home/piku/.piku/cgred.conf
         ExecStart=/usr/sbin/cgrulesengd
         Restart=on-failure
 
         [Install]
         WantedBy=multi-user.target
 
-  - path: /etc/cgred.conf
+  - path: /etc/systemd/system/piku-cgrulesengd-watcher.path
     content: |
-      # this line intentionally commented out
+      [Unit]
+      Description=Monitor .piku/cgred.conf for changes
+
+      [Path]
+      PathChanged=/home/piku/.piku/cgred.conf
+      Unit=piku-cgrulesengd-watcher.service
+
+      [Install]
+      WantedBy=multi-user.target
+  
+  - path: /etc/systemd/system/piku-cgrulesengd-watcher.service
+    content: |
+      [Unit]
+      Description=Restarts cgrulesengd when .piku/cgred.conf changes.
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/systemctl restart cgrulesengd
+
+      [Install]
+      WantedBy=multi-user.target
 
   # Have the Azure agent set up a swapfile for us
   - path: /etc/waagent.conf
@@ -192,6 +233,9 @@ runcmd:
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
   - su - piku -c "python ~/piku.py setup:ssh /tmp/id_rsa.pub"
+  # Set up cgroup files
+  - su - piku -c "mkdir -p ~/.piku/cgconfig.d"
+  - su - piku -c "touch ~/.piku/cgred.conf"
   # Remove snaps (primarily useful in smaller VMs)
   - sudo apt-get purge snapd -y
   # Install nodesource LTS version
@@ -204,7 +248,6 @@ runcmd:
   # enable our extra services
   - systemctl enable piku-nginx-watcher
   - systemctl enable cgconfigparser
-  - cp /usr/share/doc/cgroup-tools/examples/cgred.conf /etc/cgred.conf
   - systemctl enable cgrulesgend
   # This will clean out /tmp as well
   - reboot

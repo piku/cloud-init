@@ -1,7 +1,7 @@
 export SHELL=/bin/bash
-export RESOURCE_GROUP?=paas
+export RESOURCE_GROUP?=piku
 export LOCATION?=eastus2
-export MACHINE_NAME?=paas
+export MACHINE_NAME?=pikutest
 export DNS_NAME:=$(MACHINE_NAME)-$(RESOURCE_GROUP)
 export FQDN:=$(DNS_NAME).$(LOCATION).cloudapp.azure.com
 export SSH_PORT:=22
