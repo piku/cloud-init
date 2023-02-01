@@ -135,7 +135,6 @@ write_files:
 
   # Set up cgroup filesystem so we can limit process RAM and CPU usage
   - path: /etc/systemd/system/cgconfigparser.service
-    append: true
     content: |
         [Unit]
         Description=cgroup config parser
@@ -176,7 +175,6 @@ write_files:
 
   # Set up cgroup allocation rules
   - path: /etc/systemd/system/cgrulesgend.service
-    append: true
     content: |
         [Unit]
         Description=cgroup rules generator
