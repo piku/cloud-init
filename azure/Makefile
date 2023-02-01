@@ -14,6 +14,7 @@ export OS_DISK_SIZE:=32
 export OS_DISK_SKU:=StandardSSD_LRS
 export VM_IMAGE:=Canonical:0001-com-ubuntu-minimal-jammy:minimal-22_04-lts-gen2:latest
 export SSH:=ssh -q -A $(ADMIN_USERNAME)@$(FQDN) -p $(SSH_PORT) -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+export MY_IP:=$(shell curl -s ipinfo.io | grep ip\" | cut -d\" -f 4)
 
 # Permanent local overrides
 -include .env
@@ -58,6 +59,7 @@ deploy-network: ## Deploy the network and open network security group ports
 		--access Allow \
 		--direction Inbound \
 		--protocol TCP \
+		--source-address-prefixes $(MY_IP)/32 \
 		--destination-port-ranges $(SSH_PORT) \
 		--nsg-name $(MACHINE_NAME) \
 		--resource-group $(RESOURCE_GROUP) \
