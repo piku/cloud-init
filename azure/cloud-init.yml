@@ -96,7 +96,7 @@ write_files:
       Description=Monitor .piku/nginx for changes
 
       [Path]
-      PathChanged=/home/piku/.piku/nginx
+      PathModified=/home/piku/.piku/nginx
       Unit=piku-nginx-watcher.service
 
       [Install]
@@ -134,7 +134,7 @@ write_files:
         fs.inotify.max_user_watches=1048576
 
   # Set up cgroup filesystem so we can limit process RAM and CPU usage
-  - path: /lib/systemd/system/cgconfigparser.service
+  - path: /etc/systemd/system/cgconfigparser.service
     append: true
     content: |
         [Unit]
@@ -156,7 +156,7 @@ write_files:
       Description=Monitor .piku/cgconfig.d for changes
 
       [Path]
-      PathChanged=/home/piku/.piku/cgconfig.d
+      PathModified=/home/piku/.piku/cgconfig.d
       Unit=piku-cgconfigparser-watcher.service
 
       [Install]
@@ -175,7 +175,7 @@ write_files:
       WantedBy=multi-user.target
 
   # Set up cgroup allocation rules
-  - path: /lib/systemd/system/cgrulesgend.service
+  - path: /etc/systemd/system/cgrulesgend.service
     append: true
     content: |
         [Unit]
@@ -199,7 +199,7 @@ write_files:
       Description=Monitor .piku/cgred.conf for changes
 
       [Path]
-      PathChanged=/home/piku/.piku/cgred.conf
+      PathModified=/home/piku/.piku/cgred.conf
       Unit=piku-cgrulesengd-watcher.service
 
       [Install]
@@ -245,9 +245,16 @@ runcmd:
   - apt-get update -y
   - apt-get dist-upgrade -y
   - apt-get autoremove -y
-  # enable our extra services
+  # enable our extra services and give them a chance to generate any error messages in cloud-init logs
   - systemctl enable piku-nginx-watcher
+  - systemctl start piku-nginx-watcher
+  - systemctl enable piku-cgrulesengd-watcher
+  - systemctl start piku-cgrulesengd-watcher
+  - systemctl enable piku-cgconfigparser-watcher
+  - systemctl start piku-cgconfigparser-watcher
   - systemctl enable cgconfigparser
-  - systemctl enable cgrulesgend
+  - systemctl start cgconfigparser
+  - systemctl enable cgrulesengd
+  - systemctl start cgrulesengd
   # This will clean out /tmp as well
   - reboot
