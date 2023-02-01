@@ -113,8 +113,8 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
-  
-  - path: /etc/sshd_config
+
+  - path: /etc/ssh/sshd_config
     append: true
     content: |
       Port $SSH_PORT
@@ -150,6 +150,10 @@ write_files:
         [Install]
         WantedBy=multi-user.target
 
+  - path: /etc/cgconfig.conf
+    content: |
+      # this line intentionally commented out
+
   - path: /lib/systemd/system/cgrulesgend.service
     append: true
     content: |
@@ -167,6 +171,10 @@ write_files:
 
         [Install]
         WantedBy=multi-user.target
+
+  - path: /etc/cgred.conf
+    content: |
+      # this line intentionally commented out
 
   # Have the Azure agent set up a swapfile for us
   - path: /etc/waagent.conf

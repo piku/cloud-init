@@ -1,10 +1,10 @@
 export SHELL=/bin/bash
-export RESOURCE_GROUP?=piku
+export RESOURCE_GROUP?=paas
 export LOCATION?=eastus2
 export MACHINE_NAME?=paas
 export DNS_NAME:=$(MACHINE_NAME)-$(RESOURCE_GROUP)
 export FQDN:=$(DNS_NAME).$(LOCATION).cloudapp.azure.com
-export SSH_PORT:=1337
+export SSH_PORT:=22
 export ADMIN_USERNAME?=$(notdir $(HOME))
 export TIMESTAMP:=$(shell date "+%Y-%m-%d-%H-%M-%S")
 export STORAGE_SUFFIX:=$(shell date "+%m%d%H")
