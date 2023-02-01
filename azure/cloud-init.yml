@@ -96,7 +96,7 @@ write_files:
       Description=Monitor .piku/nginx for changes
 
       [Path]
-      PathModified=/home/piku/.piku/nginx
+      PathChanged=/home/piku/.piku/nginx
       Unit=piku-nginx-watcher.service
 
       [Install]
@@ -155,7 +155,7 @@ write_files:
       Description=Monitor .piku/cgconfig.d for changes
 
       [Path]
-      PathModified=/home/piku/.piku/cgconfig.d
+      PathChanged=/home/piku/.piku/cgconfig.d
       Unit=piku-cgconfigparser-watcher.service
 
       [Install]
@@ -197,7 +197,7 @@ write_files:
       Description=Monitor .piku/cgred.conf for changes
 
       [Path]
-      PathModified=/home/piku/.piku/cgred.conf
+      PathChanged=/home/piku/.piku/cgred.conf
       Unit=piku-cgrulesengd-watcher.service
 
       [Install]
