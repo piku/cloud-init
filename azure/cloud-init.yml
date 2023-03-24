@@ -61,18 +61,8 @@ packages:
   # - redis
   
 write_files:
-  - path: /etc/nginx/sites-available/default
+  - path: /etc/nginx/sites-available/piku
     content: |
-      server {
-          listen 80 default_server;
-          listen [::]:80 default_server;
-          root /var/www/html;
-          index index.html index.htm;
-          server_name _;
-          location / {
-              try_files $uri $uri/ =404;
-          }
-      }
       include /home/piku/.piku/nginx/*.conf;
 
   - path: /etc/uwsgi/apps-enabled/piku.ini
@@ -226,6 +216,8 @@ runcmd:
   - timedatectl set-timezone Europe/Lisbon
   # Since Azure will provision the admin user first, we can get its public key like this:
   - cat /home/*/.ssh/authorized_keys | head -1 > /tmp/id_rsa.pub
+  # Enable Piku in nginx
+  - sudo ln -s /etc/nginx/sites-available/piku /etc/nginx/sites-enabled/piku 
   # Now we can add the Piku user and do the remaining setup
   - adduser --disabled-password --gecos 'PaaS access' --ingroup www-data piku
   - su - piku -c "wget https://raw.githubusercontent.com/piku/piku/master/piku.py && python3 ~/piku.py setup"
