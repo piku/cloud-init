@@ -35,8 +35,7 @@ packages:
   - certbot
   - cgroup-tools
   - git
-  - nginx
-  - python3-certbot-nginx
+  - nginx-extras
   - python3-click
   - python3-dev
   - python3-pip
@@ -174,7 +173,7 @@ write_files:
       WantedBy=multi-user.target
 
   # Set up cgroup allocation rules
-  - path: /etc/systemd/system/cgrulesgend.service
+  - path: /etc/systemd/system/cgrulesengd.service
     content: |
         [Unit]
         Description=cgroup rules generator
