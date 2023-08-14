@@ -74,7 +74,7 @@ packages:
   # - postgresql
   
 write_files:
-- path: /etc/nginx/sites-available/default
+  - path: /etc/nginx/sites-available/default
     content: |
       server {
           listen 80 default_server;
